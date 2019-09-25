@@ -10,46 +10,43 @@ app.get('/', (req, res) => {
   res.send('Hello express!');
 });
 
-app.get('/sum', (req, res) => {
-  const {a, b} = req.query;
-  
-  if(!a) {
+app.get('/frequency', (req, res) => {
+  const { s } = req.query;
+
+  if (!s) {
     return res
       .status(400)
-      .send('Value for a is needed');
+      .send('Invalid request');
   }
 
-  if(!b) {
-    return res
-      .status(400)
-      .send('Value for b is needed');
-  }
+  const counts = s
+    .toLowerCase()
+    .split('')
+    .reduce((acc, curr) => {
+      if (acc[curr]) {
+        acc[curr]++;
+      } else {
+        acc[curr] = 1;
+      }
+      return acc;
+    }, {});
 
-  const numA = parseFloat(a);
-  const numB = parseFloat(b);
+  const unique = Object.keys(counts).length;
+  const average = s.length / unique;
+  let highest = '';
+  let highestVal = 0;
 
-  if (Number.isNaN(numA)) {
-    return res
-      .status(400)
-      .send('Value for a must be numeric');
-  }
+  Object.keys(counts).forEach(k => {
+    if (counts[k] > highestVal) {
+      highestVal = counts[k];
+      highest = k;
+    }
+  });
 
-  if (Number.isNaN(numB)) {
-    return res
-      .status(400)
-      .send('Value for b must be numeric');
-  }
-
-  if (numB == 0) {
-    return res
-      .status(400)
-      .send('Cannot divide by 0');
-  }
-
-  const ans = numA / numB;
-
-  res
-    .send(`${a} divided by ${b} is ${ans}`);
+  counts.count = unique;
+  counts.average = average;
+  counts.highest = highest;
+  res.json(counts);
 });
 
 module.exports = app;

@@ -5,47 +5,54 @@ const supertest = require('supertest');
 const app = require('../app');
 
 describe('Express App', () => {
-  it('should return a message from GET /', () => {
+  it('returns 400 if input is blank, with msg \'invalid request\'', ()=> {
     return supertest(app)
-      .get('/')
-      .expect(200, 'Hello express!');
-  });
-});
-
-describe('GET /sum', () => {
-  it('8/4 should be 2', ()=> {
-    return supertest(app)
-      .get('/sum')
-      .query({a: 8, b: 4})
-      .expect(200, '8 divided by 4 is 2');
+      .get('/frequency')
+      .expect(400, 'Invalid request');
   });
 
-  it(`should return 400 if 'a' is missing.`, ()=> {
+  it('returns count: 1 when given aA', ()=> {
     return supertest(app)
-      .get('/sum')
-      .query({b: 4})
-      .expect(400, 'Value for a is needed');
+      .get('/frequency')
+      .query({ s: 'aA' })
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .then(res => {
+        expect(res.body).to.have.property('count', 1);
+      });
   });
 
-  it(`should return 400 if 'b' is missing.`, () => {
+  it('returns average: 5 when given aaVVAAvvaa', () => {
     return supertest(app)
-      .get('/sum')
-      .query({ a:4 })
-      .expect(400, 'Value for b is needed'); 
+      .get('/frequency')
+      .query({ s: 'Dffppo'})
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .then(res => {
+        expect(res.body).to.have.property('average', 1.5);
+      });
+  });
+  
+  it(`returns highest:'C' when given 'abcC'`, () => {
+    return supertest(app)
+      .get('/frequency')
+      .query({ s: 'abcC'})
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .then(res=> {
+        expect(res.body).to.have.property('highest', 'c');
+      });
   });
 
-  it(`should return 400 if 'a' is not of type number.`, ()=>{
+  it(`returns accurate number of object keys; given 'abc', should return 6`, ()=> {
     return supertest(app)
-      .get('/sum')
-      .query({ a:'b', b:4 })
-      .expect(400, 'Value for a must be numeric');
-  });
-
-  it(`should return 400 if 'b' is not of type number`, ()=> {
-    return supertest(app)
-      .get('/sum')
-      .query({ a: 4, b: 'a'})
-      .expect(400, 'Value for b must be numeric');
+      .get('/frequency')
+      .query({ s: 'abc'})
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .then(res=> {
+        expect(Object.keys(res.body)).to.have.lengthOf(6);
+      });
   });
 
 });
